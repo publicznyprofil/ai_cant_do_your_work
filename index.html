@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>It Still Can't Do My Job</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#x1F945;</text></svg>">
+    <style>
+        :root {
+            --bg: #fdfdfb;
+            --text: #24292f;
+            --muted: #6e7781;
+            --faint: #d0d7de;
+            --accent: #d9640e;
+            --quote-bg: #f6f4ef;
+            --comment-bg: #f2f3f5;
+            --goal-bg: #fdf3e7;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #16181d;
+                --text: #d5d9de;
+                --muted: #8b949e;
+                --faint: #30363d;
+                --accent: #e8833a;
+                --quote-bg: #1d2026;
+                --comment-bg: #1c1f24;
+                --goal-bg: #221c14;
+            }
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: Georgia, 'Times New Roman', serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            margin: 0;
+            padding: 56px 20px 40px;
+            font-size: 1.05rem;
+        }
+        .post { max-width: 42rem; margin: 0 auto; }
+        h1 {
+            font-size: 2em;
+            line-height: 1.2;
+            margin: 0 0 6px;
+        }
+        .subtitle { color: var(--muted); font-style: italic; margin-bottom: 28px; }
+        p { margin: 0 0 14px; }
+
+        .timeline { border-left: 2px solid var(--faint); margin-top: 40px; }
+        .era {
+            position: relative;
+            padding: 0 0 40px 28px;
+        }
+        .era::before {
+            content: '';
+            position: absolute;
+            left: -7px;
+            top: 7px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: 2px solid var(--bg);
+        }
+        .date {
+            font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-weight: 700;
+            font-size: 0.85em;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+        .era h2 {
+            font-size: 1.25em;
+            margin: 0 0 12px;
+            line-height: 1.3;
+        }
+
+        /* Real, citable quotes */
+        blockquote {
+            margin: 18px 0;
+            padding: 14px 18px;
+            background: var(--quote-bg);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 6px 6px 0;
+        }
+        blockquote p { margin: 0 0 8px; font-style: italic; }
+        blockquote cite {
+            display: block;
+            font-style: normal;
+            font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-size: 0.82em;
+            color: var(--muted);
+        }
+
+        /* Paraphrased comment-section takes */
+        .comment {
+            margin: 18px 0;
+            padding: 12px 16px 12px 34px;
+            background: var(--comment-bg);
+            border: 1px solid var(--faint);
+            border-radius: 6px;
+            font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-size: 0.92em;
+            position: relative;
+        }
+        .comment::before {
+            content: '\25B2';
+            position: absolute;
+            left: 13px;
+            top: 13px;
+            font-size: 0.75em;
+            color: var(--muted);
+        }
+        .comment p { margin: 0 0 4px; }
+        .comment .who {
+            font-size: 0.82em;
+            color: var(--muted);
+        }
+
+        .goalpost {
+            margin: 18px 0 0;
+            padding: 12px 16px;
+            background: var(--goal-bg);
+            border: 1px dashed var(--accent);
+            border-radius: 6px;
+        }
+        .goalpost .label {
+            font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-size: 0.72em;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+            display: block;
+            margin-bottom: 2px;
+        }
+        .goalpost p { margin: 0; font-style: italic; }
+
+        .you-are-here {
+            margin: 8px 0 40px;
+            text-align: center;
+            color: var(--muted);
+            font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-size: 0.85em;
+            letter-spacing: 2px;
+        }
+        .you-are-here::before, .you-are-here::after {
+            content: "· · · · ·";
+            margin: 0 14px;
+            color: var(--faint);
+            letter-spacing: 4px;
+        }
+
+        /* The forecast: same timeline, but dashed and hollow */
+        .forecast-intro { margin-bottom: 24px; }
+        .forecast { border-left: 2px dashed var(--faint); }
+        .forecast .era::before {
+            background: var(--bg);
+            border: 2px solid var(--accent);
+        }
+        .forecast .date { opacity: 0.85; }
+
+        /* Scroll HUD: AI "IQ" + SOTA model at the current point in the story */
+        .hud {
+            display: none;
+            position: fixed;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 168px;
+            padding: 14px 16px;
+            border: 1px solid var(--faint);
+            border-radius: 8px;
+            background: var(--bg);
+            font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+            z-index: 10;
+        }
+        @media (min-width: 1160px) {
+            .hud { display: block; }
+        }
+        .hud-label {
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+        .hud-iq {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.1;
+            color: var(--accent);
+        }
+        .hud-model {
+            font-size: 0.78rem;
+            color: var(--text);
+            margin: 2px 0 10px;
+            min-height: 2.2em;
+        }
+        .hud-note {
+            font-size: 0.65rem;
+            color: var(--muted);
+            line-height: 1.4;
+            border-top: 1px solid var(--faint);
+            padding-top: 8px;
+        }
+        .hud.pop .hud-iq { animation: hudpop .35s ease; }
+        @keyframes hudpop {
+            0% { transform: scale(1.22); }
+            100% { transform: scale(1); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .hud.pop .hud-iq { animation: none; }
+        }
+
+        .graveyard {
+            margin-top: 44px;
+            padding: 24px 26px;
+            border: 1px solid var(--faint);
+            border-radius: 8px;
+        }
+        .graveyard h2 { font-size: 1.2em; margin: 0 0 14px; }
+        .graveyard ul { list-style: none; margin: 0; padding: 0; }
+        .graveyard li {
+            padding: 6px 0;
+            border-bottom: 1px solid var(--faint);
+        }
+        .graveyard li:last-child { border-bottom: none; }
+        .graveyard .dead { color: var(--muted); text-decoration: line-through; }
+        .graveyard .years {
+            font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-size: 0.78em;
+            color: var(--muted);
+            display: inline-block;
+            margin-left: 8px;
+        }
+        .graveyard .alive { font-weight: bold; }
+        .graveyard .reserved { font-style: italic; color: var(--muted); }
+
+        .footer {
+            margin-top: 48px;
+            padding-top: 18px;
+            border-top: 1px solid var(--faint);
+            color: var(--muted);
+            font-size: 0.92em;
+        }
+
+        .js .era { opacity: 0; transform: translateY(12px); transition: opacity .5s ease, transform .5s ease; }
+        .js .era.seen { opacity: 1; transform: none; }
+        @media (prefers-reduced-motion: reduce) {
+            .js .era { opacity: 1; transform: none; transition: none; }
+        }
+        @media (max-width: 480px) {
+            body { padding-top: 32px; font-size: 1rem; }
+            .era { padding-left: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="post">
+        <h1>It Still Can't Do My Job</h1>
+        <div class="subtitle">Four years of moving goalposts, with receipts</div>
+
+        <p>I started keeping notes in December 2022, mostly to document why the panic was overblown. The notes turned into this. The quotes in orange boxes are real. You can look them up. The gray comments are paraphrased from a few thousand comment sections. You know the ones. You may have written some. I did.</p>
+
+        <div class="timeline">
+
+            <div class="era" data-iq="64" data-model="ChatGPT (GPT-3.5)">
+                <div class="date">November 2022</div>
+                <h2>The party trick</h2>
+                <p>ChatGPT launches on a Wednesday. By the weekend it has a million users and my whole feed is screenshots of it apologizing for code that doesn't compile. It invents functions. It hallucinates whole APIs. I asked it for Snake, the game you write in an afternoon as a teenager. It gave me a snake that ate itself on move one. Five days in, Stack Overflow bans it:</p>
+                <blockquote>
+                    <p>"Because the average rate of getting correct answers from ChatGPT is too low, the posting of answers created by ChatGPT is substantially harmful to the site."</p>
+                    <cite>Stack Overflow temporary policy, December 5, 2022</cite>
+                </blockquote>
+                <p>The verdict was easy, and it was also mine: a stochastic parrot that learned to sound like a senior dev without ever meeting a compiler.</p>
+                <div class="goalpost"><span class="label">The goalpost</span><p>Call me when it stops making things up. It can't even do Snake.</p></div>
+            </div>
+
+            <div class="era" data-iq="85" data-model="GPT-4">
+                <div class="date">March 2023</div>
+                <h2>The exam season</h2>
+                <p>GPT-4 ships. One prompt now gets you a working Snake. The same game it face-planted on four months earlier. The comment sections adjust instantly and never slow down:</p>
+                <div class="comment">
+                    <p>It's just a simple game bro. There are ten thousand Snake tutorials on GitHub, it's literally copy-pasting. Wake me up when it does something that's NOT in the training data.</p>
+                    <p class="who">the comment section, spring 2023, paraphrased</p>
+                </div>
+                <p>Meanwhile the party trick starts passing exams. OpenAI claims the bar exam at the 90th percentile. Microsoft researchers publish a paper called "Sparks of Artificial General Intelligence". A real paper, with that real title. To be fair, the skeptics landed punches here. A later re-evaluation put the bar exam closer to the 60th percentile, and around the 48th among people who actually passed. Both sides were flinging numbers. Only one side was flinging them at a thing that kept improving.</p>
+                <div class="goalpost"><span class="label">The goalpost</span><p>Toy scripts and exams aren't engineering. Call me when it builds something real. A proper game, say. In 3D.</p></div>
+            </div>
+
+            <div class="era" data-iq="101" data-model="Claude 3 Opus">
+                <div class="date">March 2024</div>
+                <h2>The staged demo</h2>
+                <p>A startup called Cognition announces Devin, "the first AI software engineer". The demo video is everywhere for a week. A month later a veteran developer named Carl Brown (YouTube channel: Internet of Bugs) goes through it almost frame by frame. The impressive parts were curated. Devin didn't do the Upwork task from the demo. It generated its own errors, then heroically fixed them. The skeptics take a well-earned victory lap. I watched the takedown twice. It felt great.</p>
+                <p>That same spring, the CEO of Nvidia stands on a stage in Dubai:</p>
+                <blockquote>
+                    <p>"It is our job to create computing technologies that nobody has to program, and that the programming language is human. Everybody in the world is now a programmer."</p>
+                    <cite>Jensen Huang, World Governments Summit, February 2024</cite>
+                </blockquote>
+                <p>Nobody I know quit programming that year. But everybody I know quietly installed Copilot.</p>
+                <div class="goalpost"><span class="label">The goalpost</span><p>Demos are staged. Call me when real developers use this for real work, daily.</p></div>
+            </div>
+
+            <div class="era" data-iq="120" data-model="o1-preview">
+                <div class="date">October 2024</div>
+                <h2>The earnings call</h2>
+                <blockquote>
+                    <p>"More than a quarter of all new code at Google is generated by AI, then reviewed and accepted by engineers."</p>
+                    <cite>Sundar Pichai, Alphabet earnings call, October 2024</cite>
+                </blockquote>
+                <p>The comment sections don't blink. That's just autocomplete acceptance metrics. Boilerplate doesn't count. Half of it is import statements. And fine, some of it probably is. But "a quarter of Google" is a strange thing to keep calling a party trick.</p>
+                <div class="goalpost"><span class="label">The goalpost</span><p>Generating lines isn't the job. Call me when it takes a ticket and ships the feature.</p></div>
+            </div>
+
+            <div class="era" data-iq="118" data-model="Grok 3 / Claude 3.7">
+                <div class="date">February 2025</div>
+                <h2>The vibes</h2>
+                <blockquote>
+                    <p>"There's a new kind of coding I call 'vibe coding', where you fully give in to the vibes, embrace exponentials, and forget that the code even exists."</p>
+                    <cite>Andrej Karpathy, February 2, 2025</cite>
+                </blockquote>
+                <p>Three weeks later Pieter Levels prompts a multiplayer 3D flight simulator into existence. It takes him about three hours. He has zero gamedev experience. He puts it online at fly.pieter.com. Remember the 2023 goalpost? A proper game, in 3D? Here it is. It sells $29.99 fighter jets and blimp ads to real customers, and he claims a $1M annual run rate within seventeen days. The comment sections know exactly what to do:</p>
+                <div class="comment">
+                    <p>It has no vibe bro. It doesn't even feel like a fun game to play. Floaty physics, asset-flip graphics, zero game design. This is a tech demo with a Stripe account.</p>
+                    <p class="who">the comment section, March 2025, paraphrased</p>
+                </div>
+                <p>Same season: Zuckerberg tells Joe Rogan that Meta expects AI that codes like a "midlevel engineer" within the year. Dario Amodei says AI may be writing 90 percent of code within six months. And vibe coding grows its own disaster genre. Leaked API keys. Wide-open databases. "My app got hacked and I don't know where to look" postmortems. The seniors are unimpressed, and they have receipts. The slop is real. The security holes are very real.</p>
+                <div class="goalpost"><span class="label">The goalpost</span><p>Toys and prototypes, sure. Call me when it touches production and survives.</p></div>
+            </div>
+
+            <div class="era" data-iq="136" data-model="Grok 4 / Gemini Deep Think">
+                <div class="date">July 2025</div>
+                <h2>The month the skeptics were right</h2>
+                <p>A research group called METR takes sixteen experienced open-source developers, gives them AI tools on their own mature repos, and measures. The developers are 19 percent slower with AI. They believed they'd been 20 percent faster. Even after seeing the clock. The comment sections feast, and they've earned it. Best day the skeptics had since Devin.</p>
+                <p>Same month: OpenAI and Google DeepMind both hit gold at the International Math Olympiad. Five problems out of six, solved in plain language, inside the human time limit. Both things are true at once. That's the part nobody wants to sit with.</p>
+                <div class="goalpost"><span class="label">The goalpost</span><p>For one month, nobody had to move anything.</p></div>
+            </div>
+
+            <div class="era" data-iq="151" data-model="depends on the week">
+                <div class="date">July 2026</div>
+                <h2>Now</h2>
+                <p>Agents run for hours unattended. They open pull requests. The pull requests get merged. Some of you reviewed one this week without noticing. Stack Overflow's question volume is back to where it was when I learned to code. Not because the questions got answered. Because nobody asks a forum anymore.</p>
+                <p>Maybe the current goalposts hold. I'd just point out that every entry above held too. For about eighteen months each.</p>
+                <div class="goalpost"><span class="label">The goalpost</span><p>Call me when it handles our legacy codebase. When it can be held accountable. When it knows what to build, not just how.</p></div>
+            </div>
+
+        </div>
+
+        <div class="you-are-here">YOU ARE HERE</div>
+
+        <div class="forecast-intro">
+            <p>Nothing below this line has happened yet. It's a guess. Laugh freely. People laughed at the top half of this page too, and I have the screenshots.</p>
+        </div>
+
+        <div class="timeline forecast">
+
+            <div class="era" data-iq="170 (est.)" data-model="unreleased">
+                <div class="date">~2027 (forecast)</div>
+                <h2>The one-shot game, for real this time</h2>
+                <p>One prompt returns a polished, playable open-world game. Coherent art direction. Tuned physics. Working multiplayer. A soundtrack. Not a floaty tech demo. Something your kid plays for a month.</p>
+                <div class="comment">
+                    <p>No soul bro. Real games come from a designer suffering for years, not from a prompt. This is procedurally generated slop with good lighting. Name ONE mechanic in it that's actually original.</p>
+                    <p class="who">the comment section, 2027, predicted</p>
+                </div>
+                <div class="goalpost"><span class="label">The goalpost</span><p>Remixing isn't creating. Call me when it makes something genuinely new.</p></div>
+            </div>
+
+            <div class="era" data-iq="185 (est.)" data-model="it names itself now">
+                <div class="date">~2028 (forecast)</div>
+                <h2>The legacy codebase</h2>
+                <p>An agent digests a fifteen-year-old monolith. The one with the cron job held together by a comment that says "do not remove". It maps the undocumented business rules and refactors the whole thing over a quarter, tests green the whole way. The big goalpost falls quietly on a Tuesday.</p>
+                <div class="comment">
+                    <p>It didn't understand the business bro, it just pattern-matched every migration ever pushed to GitHub. A consultant would have asked WHY the invoice logic works that way. It never asked why.</p>
+                    <p class="who">the comment section, 2028, predicted</p>
+                </div>
+                <div class="goalpost"><span class="label">The goalpost</span><p>Call me when it owns a system end to end. Pager and all.</p></div>
+            </div>
+
+            <div class="era" data-iq="200+" data-model="the on-call">
+                <div class="date">~2030 (forecast)</div>
+                <h2>The pager</h2>
+                <p>The on-call rotation is a model. Incidents open, get diagnosed, get fixed, and get post-mortemed before any human wakes up. Uptime improves. The people this replaced point out, correctly, that keeping systems alive was never the hard part. By now that's a lot of us.</p>
+                <div class="comment">
+                    <p>Ops was always automatable, that's why we wrote runbooks bro. The hard part is knowing WHAT to build. It can't want something. It's never been annoyed by a product enough to fix it.</p>
+                    <p class="who">the comment section, 2030, predicted</p>
+                </div>
+                <div class="goalpost"><span class="label">The goalpost</span><p>Call me when it comes up with the idea.</p></div>
+            </div>
+
+            <div class="era" data-iq="yes" data-model="the founder">
+                <div class="date">~2033 (forecast)</div>
+                <h2>The founder</h2>
+                <p>An AI notices an unmet need, builds the product, finds the customers, and runs the company to a billion-dollar valuation with zero employees. The final think-piece comes out that same week. The argument is airtight: it's still just fancy autocomplete.</p>
+                <div class="comment">
+                    <p>It doesn't even drink craft beer.</p>
+                    <p class="who">the last comment section, 2033, predicted</p>
+                </div>
+                <div class="goalpost"><span class="label">The goalpost</span><p>Call me.</p></div>
+            </div>
+
+        </div>
+
+        <div class="graveyard">
+            <h2>The goalpost graveyard</h2>
+            <ul>
+                <li><span class="dead">It can't even write Snake.</span><span class="years">2022&ndash;2023</span></li>
+                <li><span class="dead">Snake is simple bro. It's just memorizing tutorials and benchmarks.</span><span class="years">2023&ndash;2024</span></li>
+                <li><span class="dead">The demos are staged. No real developer will use it.</span><span class="years">2024</span></li>
+                <li><span class="dead">It can't build a real product. A 3D game, say.</span><span class="years">2023&ndash;2025</span></li>
+                <li><span class="dead">It can't take a ticket and ship the feature.</span><span class="years">2024&ndash;2025</span></li>
+                <li><span class="dead">Prototypes only. Never production.</span><span class="years">2025&ndash;2026</span></li>
+                <li><span class="alive">It can't handle a legacy codebase. It can't be accountable. It doesn't know what to build.</span><span class="years">current occupants</span></li>
+                <li><span class="reserved">It has no soul. It can't want things. It doesn't drink craft beer.</span><span class="years">plots reserved</span></li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>The quotes in orange boxes are real and checkable. Stack Overflow's ban post. Huang in Dubai. Pichai's Q3 2024 earnings call. Karpathy's tweet. The METR study (arXiv:2507.09089). The Martínez bar-exam re-evaluation. The gray comments are paraphrased composites. Except the future ones, which are predictions. And the past ones, which I could sadly reconstruct from memory.</p>
+            <p>The "IQ" ticker on the right uses Mensa-style test scores that people run on each new model. It's not science. It's a vibe with a number attached.</p>
+            <p>At almost every point on this line, the denial was true. Right up until it wasn't. (Except July 2025. July 2025 was fair.)</p>
+        </div>
+    </div>
+
+    <div class="hud" id="hud" aria-hidden="true">
+        <div class="hud-label">AI "IQ" right now in the story</div>
+        <div class="hud-iq" id="hud-iq">64</div>
+        <div class="hud-model" id="hud-model">ChatGPT (GPT-3.5)</div>
+        <div class="hud-note">Mensa-style test scores. Not science. A vibe with a number attached.</div>
+    </div>
+
+    <script>
+        (function () {
+            var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            if (!reduced && 'IntersectionObserver' in window) {
+                document.body.classList.add('js');
+                var obs = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (e) {
+                        if (e.isIntersecting) { e.target.classList.add('seen'); obs.unobserve(e.target); }
+                    });
+                }, { rootMargin: '0px 0px -8% 0px' });
+                document.querySelectorAll('.era').forEach(function (el) { obs.observe(el); });
+            }
+
+            var hud = document.getElementById('hud');
+            var iqEl = document.getElementById('hud-iq');
+            var modelEl = document.getElementById('hud-model');
+            var eras = [].slice.call(document.querySelectorAll('.era[data-iq]'));
+            if (!hud || !eras.length) return;
+
+            var current = -1;
+            var ticking = false;
+            function update() {
+                ticking = false;
+                var mid = window.innerHeight * 0.45;
+                var idx = 0;
+                for (var i = 0; i < eras.length; i++) {
+                    if (eras[i].getBoundingClientRect().top < mid) idx = i;
+                }
+                if (idx !== current) {
+                    current = idx;
+                    iqEl.textContent = eras[idx].getAttribute('data-iq');
+                    modelEl.textContent = eras[idx].getAttribute('data-model');
+                    hud.classList.remove('pop');
+                    void hud.offsetWidth;
+                    hud.classList.add('pop');
+                }
+            }
+            window.addEventListener('scroll', function () {
+                if (!ticking) { ticking = true; requestAnimationFrame(update); }
+            }, { passive: true });
+            update();
+        })();
+    </script>
+
+</body>
+</html>
